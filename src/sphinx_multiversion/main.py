@@ -475,8 +475,7 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
     # Generate HTML page which redirects to latest released docs
     html_file_path = os.path.join(os.path.abspath(args.outputdir), "index.html")
     with open(html_file_path, mode="w", encoding="utf-8") as fp:
-        fake_ref = git.GitVersionRef(released_versions[-1], "", "", "", "", "")
-        outputdir_formatted = config.smv_outputdir_format.format(ref=fake_ref, config=current_config)
+        outputdir_formatted = config.smv_outputdir_format.format(ref=gitrefs[-1], config=current_config)
         redirection_path = os.path.join(outputdir_formatted, "index.html")
         fp.write(_generate_html_redirection_page(redirection_path))
 
