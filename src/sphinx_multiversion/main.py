@@ -80,6 +80,12 @@ def _create_sphinx_config_worker(
                 "html",
                 str,
             )
+            current_config.add(
+                "smv_regex_name",
+                "(.*)",
+                "html",
+                str,
+            )
             current_config.add("smv_prefer_remote_refs", False, "html", bool)
             current_config.add("smv_symver_pattern", r"^[^\d]*(\d*\.\d*).*$", "html", str)
         current_config.pre_init_values()
@@ -281,6 +287,9 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
         config.smv_remote_whitelist,
         files=(sourcedir, conffile),
     )
+
+    if config.smv_regex_name:
+        gitrefs = [one_gitref._replace(name=re.sub(config.smv_regex_name, r'\1', one_gitref.name)) for one_gitref in gitrefs]
 
     # Order git refs
     if config.smv_prefer_remote_refs:
