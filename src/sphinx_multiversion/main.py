@@ -144,7 +144,7 @@ def _get_python_flags() -> Iterator[str]:  # pylint: disable=too-many-branches
             yield from ("-X", f"{option}={value}")
 
 
-def _generate_html_redirection_page(path: str = "") -> str:
+def _generate_html_redirection_page(version, path: str = "") -> str:
     """Generate markup for HTML page which redirects to the latest released docs"""
     return fr'''<!-- This page is created automatically by documentation builder -->
 <!DOCTYPE html>
@@ -152,12 +152,21 @@ def _generate_html_redirection_page(path: str = "") -> str:
   <head>
     <title>Redirecting to main branch docs</title>
     <meta charset="utf-8">
-    <meta http-equiv="refresh" content="0; url=./{path}">
     <link rel="canonical" href="./{path}">
   </head>
     <body>
         <p>Redirecting you to <a href="./{path}">{path}</a></p>
     </body>
+    <script>
+      const latest = "{version}";
+      const searchParams = new URLSearchParams(window.location.search);
+      let redirector = window.origin + window.location.pathname + latest + "/index.html";
+      const uri = searchParams.get('uri');
+      if (uri && !uri.includes(latest)) {{
+          redirector = window.origin + uri.replace(window.location.pathname, window.location.pathname + latest + "/");
+      }}
+      window.location.replace(redirector);
+    </script>
 </html>'''
 
 
@@ -487,6 +496,6 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
         latest_version = [one_gitref for one_gitref in gitrefs if one_gitref.name == released_versions[-1]]
         outputdir_formatted = config.smv_outputdir_format.format(ref=latest_version[-1], config=current_config)
         redirection_path = os.path.join(outputdir_formatted, "index.html")
-        fp.write(_generate_html_redirection_page(redirection_path))
+        fp.write(_generate_html_redirection_page(outputdir_formatted, redirection_path))
 
     return 0
