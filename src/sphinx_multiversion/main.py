@@ -266,9 +266,9 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
         return 1
 
     logger = logging.getLogger(__name__)
+
     sourcedir_absolute = os.path.abspath(args.sourcedir)
     confdir_absolute = os.path.abspath(args.confdir) if args.confdir is not None else sourcedir_absolute
-    args.confdir = None
 
     # Conf-overrides
     confoverrides = {}
@@ -278,7 +278,7 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
 
     # Parse config
     if args.confdir_multiversion:
-        path_conf = os.path.abspath(args.confdir)
+        path_conf = os.path.abspath(args.confdir_multiversion)
     else:
         path_conf = confdir_absolute
     config = _load_sphinx_config(path_conf, confoverrides, add_defaults=True)
