@@ -187,7 +187,7 @@ def _create_argument_parser() -> argparse.ArgumentParser:
         help=("path where configuration file (conf.py) is located " "(default: same as SOURCEDIR)"),
     )
     parser.add_argument(
-        "-m",
+        "-f",
         metavar="PATH",
         dest="confdir_multiversion",
         help=("path where multiversion configuration file"),
