@@ -260,9 +260,10 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
         return 1
 
     logger = logging.getLogger(__name__)
-
     sourcedir_absolute = os.path.abspath(args.sourcedir)
-    confdir_absolute = os.path.abspath(args.confdir) if args.confdir is not None else sourcedir_absolute
+    confdir_absolute = sourcedir_absolute
+    confdir_absolute_multiversion = os.path.abspath(args.confdir) if args.confdir is not None else sourcedir_absolute
+    args.confdir = None
 
     # Conf-overrides
     confoverrides = {}
@@ -271,7 +272,7 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
         confoverrides[key] = value
 
     # Parse config
-    config = _load_sphinx_config(confdir_absolute, confoverrides, add_defaults=True)
+    config = _load_sphinx_config(confdir_absolute_multiversion, confoverrides, add_defaults=True)
 
     # Get relative paths to root of git repository
     gitroot = str(pathlib.Path(git.get_toplevel_path(cwd=sourcedir_absolute)).resolve())
@@ -322,24 +323,28 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
             repopath = os.path.join(tmp, gitref.commit)
             try:
                 git.copy_tree(gitroot, repopath, gitref)
-            except (OSError, subprocess.CalledProcessError):
+            except (OSError, subprocess.CalledProcessError) as e:
                 logger.error(
                     "Failed to copy git tree for %s to %s",
                     gitref.refname,
                     repopath,
                 )
+                print("sphinx multiversion: Error git copy_tree")
+                print(e)
                 continue
 
             # Find config
             confpath = os.path.join(repopath, confdir)
             try:
                 current_config = _load_sphinx_config(confpath, confoverrides)
-            except (OSError, sphinx_config_error):
+            except (OSError, sphinx_config_error) as e:
                 logger.error(
                     "Failed load config for %s from %s",
                     gitref.refname,
                     confpath,
                 )
+                print(f"sphinx multiversion: Error _load_sphinx_config({confpath})")
+                print(e)
                 continue
 
             # Ensure that there are not duplicate output dirs
