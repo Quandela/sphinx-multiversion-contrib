@@ -187,6 +187,12 @@ def _create_argument_parser() -> argparse.ArgumentParser:
         help=("path where configuration file (conf.py) is located " "(default: same as SOURCEDIR)"),
     )
     parser.add_argument(
+        "-f",
+        metavar="PATH",
+        dest="confdir_multiversion",
+        help=("path where multiversion configuration file"),
+    )
+    parser.add_argument(
         "-C",
         action="store_true",
         dest="noconfig",
@@ -271,7 +277,11 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
         confoverrides[key] = value
 
     # Parse config
-    config = _load_sphinx_config(confdir_absolute, confoverrides, add_defaults=True)
+    if args.confdir_multiversion:
+        path_conf = os.path.abspath(args.confdir_multiversion)
+    else:
+        path_conf = confdir_absolute
+    config = _load_sphinx_config(path_conf, confoverrides, add_defaults=True)
 
     # Get relative paths to root of git repository
     gitroot = str(pathlib.Path(git.get_toplevel_path(cwd=sourcedir_absolute)).resolve())
@@ -322,25 +332,25 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
             repopath = os.path.join(tmp, gitref.commit)
             try:
                 git.copy_tree(gitroot, repopath, gitref)
-            except (OSError, subprocess.CalledProcessError):
+            except (OSError, subprocess.CalledProcessError) as e:
                 logger.error(
                     "Failed to copy git tree for %s to %s",
                     gitref.refname,
                     repopath,
                 )
-                continue
+                raise RuntimeError("sphinx multiversion: Error git copy_tree") from e
 
             # Find config
             confpath = os.path.join(repopath, confdir)
             try:
                 current_config = _load_sphinx_config(confpath, confoverrides)
-            except (OSError, sphinx_config_error):
+            except (OSError, sphinx_config_error) as e:
                 logger.error(
                     "Failed load config for %s from %s",
                     gitref.refname,
                     confpath,
                 )
-                continue
+                raise SyntaxError("sphinx multiversion: Error _load_sphinx_config({confpath})") from e
 
             # Ensure that there are not duplicate output dirs
             outputdir = config.smv_outputdir_format.format(
