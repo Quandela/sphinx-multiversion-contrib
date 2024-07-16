@@ -338,9 +338,7 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
                     gitref.refname,
                     repopath,
                 )
-                print("sphinx multiversion: Error git copy_tree")
-                print(e)
-                continue
+                raise RuntimeError("sphinx multiversion: Error git copy_tree") from e
 
             # Find config
             confpath = os.path.join(repopath, confdir)
@@ -352,9 +350,7 @@ def main(  # pylint: disable=too-many-branches,too-many-locals,too-many-statemen
                     gitref.refname,
                     confpath,
                 )
-                print(f"sphinx multiversion: Error _load_sphinx_config({confpath})")
-                print(e)
-                continue
+                raise SyntaxError("sphinx multiversion: Error _load_sphinx_config({confpath})") from e
 
             # Ensure that there are not duplicate output dirs
             outputdir = config.smv_outputdir_format.format(
